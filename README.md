@@ -20,6 +20,19 @@ Browser-only PDF inspection powered by [`@firecrawl/pdf-inspector-wasm`](https:/
 - summarizes long page lists into ranges for large PDFs
 - includes drag state, live processing status, keyboard access, and reduced-motion support
 
+## SEO static pages
+
+The production build generates crawlable, JavaScript-independent landing pages for common PDF tasks:
+
+- `/pdf-to-markdown/`
+- `/pdf-text-extractor/`
+- `/pdf-type-detector/`
+- `/does-pdf-need-ocr/`
+
+The same build also writes `dist/sitemap.xml` and `dist/robots.txt`. Canonical URLs currently use `https://pdf.itea.fit` and should be updated in `scripts/generate-seo.mjs` if the production hostname changes.
+
+These landing pages explain the use case and link back to the browser tool at `/`; they do not duplicate the PDF parsing runtime or upload documents anywhere.
+
 ## Development
 
 ```bash
@@ -33,7 +46,7 @@ Production build:
 npm run build
 ```
 
-The Vite output is written to `dist/` and can be hosted as static assets, including on Cloudflare.
+The build runs TypeScript checks, Vite, and the SEO generator. Vite output is written to `dist/`, then the static SEO pages, sitemap, and robots file are added to that directory. The result can be hosted as static assets, including on Cloudflare.
 
 ## Architecture
 

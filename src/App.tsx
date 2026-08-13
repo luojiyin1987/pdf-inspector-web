@@ -195,7 +195,13 @@ export default function App() {
       )}
 
       <footer>
-        Powered by Firecrawl's open-source pdf-inspector. PDF bytes are processed locally with WebAssembly.
+        <nav className="footer-links" aria-label="PDF tools">
+          <a href="/pdf-to-markdown/">PDF to Markdown</a>
+          <a href="/pdf-text-extractor/">PDF Text Extractor</a>
+          <a href="/pdf-type-detector/">PDF Type Detector</a>
+          <a href="/does-pdf-need-ocr/">Does My PDF Need OCR?</a>
+        </nav>
+        <p>Powered by Firecrawl's open-source pdf-inspector. PDF bytes are processed locally with WebAssembly.</p>
       </footer>
     </main>
   )
