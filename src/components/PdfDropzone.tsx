@@ -1,13 +1,16 @@
-import { useRef, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { MAX_PDF_SIZE_LABEL } from '../lib/file-validation'
 
 interface PdfDropzoneProps {
   disabled?: boolean
   fileName?: string
   onFile: (file: File) => void
+  onCancel: () => void
 }
 
-export function PdfDropzone({ disabled = false, fileName, onFile }: PdfDropzoneProps) {
+export function PdfDropzone({ disabled = false, fileName, onFile, onCancel }: PdfDropzoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const pickFirstFile = (files: FileList | null) => {
     const file = files?.[0]
@@ -21,6 +24,7 @@ export function PdfDropzone({ disabled = false, fileName, onFile }: PdfDropzoneP
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
+    setIsDragging(false)
     if (!disabled) pickFirstFile(event.dataTransfer.files)
   }
 
@@ -32,16 +36,30 @@ export function PdfDropzone({ disabled = false, fileName, onFile }: PdfDropzoneP
     }
   }
 
+  const className = [
+    'dropzone',
+    disabled ? 'dropzone--disabled' : '',
+    isDragging && !disabled ? 'dropzone--dragging' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div
-      className={`dropzone${disabled ? ' dropzone--disabled' : ''}`}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      aria-disabled={disabled}
-      aria-label="Choose a PDF to inspect"
+      className={className}
+      role={disabled ? undefined : 'button'}
+      tabIndex={disabled ? undefined : 0}
+      aria-disabled={disabled || undefined}
+      aria-label={disabled ? undefined : 'Choose a PDF to inspect'}
+      aria-busy={disabled || undefined}
       onClick={() => !disabled && inputRef.current?.click()}
       onKeyDown={handleKeyDown}
+      onDragEnter={(event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault()
+        if (!disabled) setIsDragging(true)
+      }}
       onDragOver={(event: DragEvent<HTMLDivElement>) => event.preventDefault()}
+      onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
     >
       <input
@@ -53,9 +71,21 @@ export function PdfDropzone({ disabled = false, fileName, onFile }: PdfDropzoneP
         disabled={disabled}
       />
       <div className="dropzone__icon" aria-hidden="true">PDF</div>
-      <strong>{disabled ? 'Inspecting PDF…' : 'Drop a PDF here'}</strong>
+      <strong>{disabled ? 'Inspecting PDF…' : isDragging ? 'Release to inspect' : 'Drop a PDF here'}</strong>
       <span>{disabled ? fileName : 'or click to choose a file'}</span>
-      <small>Your PDF stays on this device.</small>
+      <small>Up to {MAX_PDF_SIZE_LABEL}. Your PDF stays on this device.</small>
+      {disabled && (
+        <button
+          className="button button--secondary dropzone__cancel"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onCancel()
+          }}
+        >
+          Cancel inspection
+        </button>
+      )}
     </div>
   )
 }

@@ -1,20 +1,24 @@
 # PDF Inspector Web
 
-A browser-first PDF inspection tool powered by Firecrawl's [`pdf-inspector`](https://github.com/firecrawl/pdf-inspector) WebAssembly package.
+Browser-only PDF inspection powered by [`@firecrawl/pdf-inspector-wasm`](https://www.npmjs.com/package/@firecrawl/pdf-inspector-wasm).
 
-## MVP features
+## MVP
 
-- Analyze PDF files entirely in the browser.
-- Classify PDFs as text-based, scanned, image-based, or mixed.
-- Show 1-indexed pages that need OCR.
-- Surface encoding issues, table pages, and multi-column pages.
-- Extract and preview Markdown when an embedded text layer is available.
-- Copy or download extracted Markdown.
-- Keep parsing off the React main thread with a Web Worker.
+- classify PDFs as text-based, scanned, image-based, or mixed
+- show page count, confidence, processing time, and pages needing OCR
+- surface encoding issues, table pages, and multi-column pages
+- extract Markdown locally in a Web Worker
+- copy or download Markdown output
+- keep PDF bytes in the browser; no upload or server-side parsing
 
-## Privacy
+## Robustness
 
-PDF bytes are passed directly from the file picker to a browser Web Worker. The MVP has no upload endpoint and no server-side PDF processing.
+- validates the PDF signature before loading the full document
+- rejects empty files and PDFs larger than 100 MB to protect browser memory
+- supports cancelling active inspection by terminating and recreating the worker
+- recovers from worker failures on the next inspection
+- summarizes long page lists into ranges for large PDFs
+- includes drag state, live processing status, keyboard access, and reduced-motion support
 
 ## Development
 
@@ -29,19 +33,22 @@ Production build:
 npm run build
 ```
 
-The generated `dist/` directory is static and can be hosted on Cloudflare Pages or another static host.
+The Vite output is written to `dist/` and can be hosted as static assets, including on Cloudflare.
 
 ## Architecture
 
 ```text
-PDF file
-  -> browser ArrayBuffer
-  -> Web Worker
-  -> @firecrawl/pdf-inspector-wasm
-  -> classification + OCR routing + Markdown
-  -> React UI
+PDF File
+   ↓
+Browser File API
+   ↓
+Web Worker
+   ↓
+@firecrawl/pdf-inspector-wasm
+   ↓
+classification + OCR routing + Markdown
+   ↓
+React UI
 ```
 
-## Scope
-
-This project deliberately does not perform OCR. Scanned/image-only pages are detected and reported so they can be routed to a separate OCR tool or service later.
+The project deliberately does not provide OCR. Scanned or image-only pages are identified so the user can decide whether a separate OCR step is needed.

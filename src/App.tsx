@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { PdfDropzone } from './components/PdfDropzone'
 import { PdfResult } from './components/PdfResult'
+import { validatePdfFile } from './lib/file-validation'
 import type { PdfProcessResult, ProcessPdfRequest, ProcessPdfResponse } from './types'
 import './styles.css'
 
 interface CompletedInspection {
   fileName: string
   result: PdfProcessResult
-}
-
-function isPdf(file: File) {
-  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
 }
 
 export default function App() {
@@ -23,14 +20,14 @@ export default function App() {
   const [error, setError] = useState('')
   const [copyLabel, setCopyLabel] = useState('Copy Markdown')
 
-  useEffect(() => {
+  const installWorker = () => {
     const worker = new Worker(new URL('./workers/pdf.worker.ts', import.meta.url), {
       type: 'module',
     })
 
     worker.onmessage = (event: MessageEvent<ProcessPdfResponse>) => {
       const response = event.data
-      if (response.requestId !== activeRequestRef.current) return
+      if (worker !== workerRef.current || response.requestId !== activeRequestRef.current) return
 
       setIsProcessing(false)
       if (response.type === 'error') {
@@ -42,37 +39,75 @@ export default function App() {
     }
 
     worker.onerror = () => {
+      if (worker !== workerRef.current) return
+
+      activeRequestRef.current += 1
       setIsProcessing(false)
-      setError('The PDF worker failed to start. Refresh the page and try again.')
+      setError('The PDF worker stopped unexpectedly. Try the file again or refresh the page.')
+      worker.terminate()
+      workerRef.current = null
     }
 
     workerRef.current = worker
-    return () => worker.terminate()
+    return worker
+  }
+
+  const restartWorker = () => {
+    workerRef.current?.terminate()
+    workerRef.current = null
+    installWorker()
+  }
+
+  useEffect(() => {
+    const worker = installWorker()
+    return () => {
+      worker.terminate()
+      if (workerRef.current === worker) workerRef.current = null
+    }
   }, [])
 
   const inspectFile = async (file: File) => {
-    if (!isPdf(file)) {
-      setError('Please choose a PDF file.')
-      return
-    }
+    const requestId = activeRequestRef.current + 1
+    activeRequestRef.current = requestId
 
     setError('')
     setInspection(null)
     setCopyLabel('Copy Markdown')
-    setProcessingFileName(file.name)
-    activeFileNameRef.current = file.name
-    setIsProcessing(true)
 
     try {
-      const requestId = activeRequestRef.current + 1
-      activeRequestRef.current = requestId
+      const validationError = await validatePdfFile(file)
+      if (requestId !== activeRequestRef.current) return
+
+      if (validationError) {
+        setError(validationError)
+        return
+      }
+
+      setProcessingFileName(file.name)
+      activeFileNameRef.current = file.name
+      setIsProcessing(true)
+
       const buffer = await file.arrayBuffer()
+      if (requestId !== activeRequestRef.current) return
+
+      if (!workerRef.current) installWorker()
       const request: ProcessPdfRequest = { type: 'process', requestId, buffer }
       workerRef.current?.postMessage(request, [buffer])
     } catch (readError) {
+      if (requestId !== activeRequestRef.current) return
+
       setIsProcessing(false)
       setError(readError instanceof Error ? readError.message : 'Unable to read this PDF.')
     }
+  }
+
+  const cancelProcessing = () => {
+    activeRequestRef.current += 1
+    restartWorker()
+    setIsProcessing(false)
+    setProcessingFileName('')
+    activeFileNameRef.current = ''
+    setError('')
   }
 
   const copyMarkdown = async () => {
@@ -129,7 +164,7 @@ export default function App() {
       </header>
 
       {!inspection && (
-        <section className="workspace" aria-labelledby="upload-heading">
+        <section className="workspace" aria-labelledby="upload-heading" aria-busy={isProcessing}>
           <div className="workspace__intro">
             <p className="eyebrow">Start inspection</p>
             <h2 id="upload-heading">Choose a PDF</h2>
@@ -139,7 +174,11 @@ export default function App() {
             disabled={isProcessing}
             fileName={processingFileName}
             onFile={inspectFile}
+            onCancel={cancelProcessing}
           />
+          <div className="status-region" aria-live="polite" aria-atomic="true">
+            {isProcessing && <span>Inspecting {processingFileName}. This can take longer for large PDFs.</span>}
+          </div>
           {error && <div className="notice notice--error" role="alert">{error}</div>}
         </section>
       )}
