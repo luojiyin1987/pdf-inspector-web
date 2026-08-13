@@ -29,7 +29,7 @@ const requiredHeaderSnippets = [
   'X-Frame-Options: DENY',
   'Referrer-Policy: strict-origin-when-cross-origin',
   'Cache-Control: public, max-age=31536000, immutable',
-  'https://:project.pages.dev/*',
+  'https://:version.:subdomain.workers.dev/*',
   'X-Robots-Tag: noindex',
 ]
 
