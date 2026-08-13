@@ -29,7 +29,7 @@ The production build generates crawlable, JavaScript-independent landing pages f
 - `/pdf-type-detector/`
 - `/does-pdf-need-ocr/`
 
-The same build also writes `dist/sitemap.xml` and `dist/robots.txt`. Canonical URLs currently use `https://pdf.itea.fit` and should be updated in `scripts/generate-seo.mjs` if the production hostname changes.
+The same build also writes `dist/sitemap.xml` and `dist/robots.txt`. The production hostname comes from `config/site.mjs`, so SEO canonicals and Cloudflare deployment use the same domain configuration.
 
 These landing pages explain the use case and link back to the browser tool at `/`; they do not duplicate the PDF parsing runtime or upload documents anywhere.
 
@@ -56,14 +56,19 @@ npm run verify:dist
 
 ## Cloudflare Pages
 
-The repository is prepared for a static Cloudflare Pages deployment at `https://pdf.itea.fit`.
+The default production configuration is centralized in `config/site.mjs`:
 
+- Pages project: `pdf-inspector-web`
+- production branch: `main`
+- production domain: `pdf.itea.fit`
 - build command: `npm run build`
 - output directory: `dist`
-- production branch: `main`
-- `public/_headers` supplies security headers, immutable caching for hashed assets, and `noindex` for Cloudflare-provided preview/`pages.dev` hosts
 
-See [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md) for the custom-domain setup and production smoke checks.
+`public/_headers` supplies security headers, immutable caching for hashed assets, and `noindex` for Cloudflare-provided preview/`pages.dev` hosts.
+
+`npm run deploy:cf` builds, verifies, and uploads `dist/` with the pinned project-local Wrangler CLI. On a production-branch deployment, it can also idempotently attach the configured custom domain through the Cloudflare Pages API when `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` are available. Preview branches never modify the production domain.
+
+See [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md) for authentication, configuration overrides, automatic custom-domain setup, and production smoke checks.
 
 ## Architecture
 

@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { SITE_ORIGIN } from '../config/site.mjs'
 
 const DIST_DIR = 'dist'
-const SITE_ORIGIN = 'https://pdf.itea.fit'
 
 const pages = [
   {
