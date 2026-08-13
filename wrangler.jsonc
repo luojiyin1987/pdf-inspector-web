@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pdf-inspector-web",
+  "compatibility_date": "2026-08-13",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    {
+      "pattern": "pdf.itea.fit",
+      "custom_domain": true
+    }
+  ]
+}

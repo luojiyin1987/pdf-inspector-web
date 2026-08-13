@@ -7,10 +7,7 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Keep the Cloudflare-provided host and preview deployments out of search results.
+# Keep the Cloudflare-provided workers.dev hostname out of search results.
 # The canonical production host is https://pdf.itea.fit.
-https://:project.pages.dev/*
-  X-Robots-Tag: noindex
-
-https://:version.:project.pages.dev/*
+https://:version.:subdomain.workers.dev/*
   X-Robots-Tag: noindex

@@ -29,7 +29,7 @@ The production build generates crawlable, JavaScript-independent landing pages f
 - `/pdf-type-detector/`
 - `/does-pdf-need-ocr/`
 
-The same build also writes `dist/sitemap.xml` and `dist/robots.txt`. The production hostname comes from `config/site.mjs`, so SEO canonicals and Cloudflare deployment use the same domain configuration.
+The same build also writes `dist/sitemap.xml` and `dist/robots.txt`. The canonical production origin is kept in the small `config/site.mjs` module.
 
 These landing pages explain the use case and link back to the browser tool at `/`; they do not duplicate the PDF parsing runtime or upload documents anywhere.
 
@@ -54,21 +54,27 @@ To rerun only the output checks:
 npm run verify:dist
 ```
 
-## Cloudflare Pages
+## Cloudflare Workers
 
-The default production configuration is centralized in `config/site.mjs`:
+Deployment uses Workers Static Assets. `wrangler.jsonc` is the deployment source of truth:
 
-- Pages project: `pdf-inspector-web`
-- production branch: `main`
-- production domain: `pdf.itea.fit`
-- build command: `npm run build`
-- output directory: `dist`
+- Worker name: `pdf-inspector-web`
+- static assets: `./dist`
+- custom domain: `pdf.itea.fit`
+- HTML handling: `auto-trailing-slash`
+- missing assets: return 404
 
-`public/_headers` supplies security headers, immutable caching for hashed assets, and `noindex` for Cloudflare-provided preview/`pages.dev` hosts.
+`public/_headers` supplies security headers, immutable caching for hashed assets, and `noindex` for the Cloudflare-provided `workers.dev` hostname.
 
-`npm run deploy:cf` builds, verifies, and uploads `dist/` with the pinned project-local Wrangler CLI. On a production-branch deployment, it can also idempotently attach the configured custom domain through the Cloudflare Pages API when `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` are available. Preview branches never modify the production domain.
+Deploy with:
 
-See [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md) for authentication, configuration overrides, automatic custom-domain setup, and production smoke checks.
+```bash
+npm run deploy
+```
+
+The command builds and verifies `dist/`, then runs `wrangler deploy`. No Pages project, Pages Domain API wrapper, or custom deployment script is required.
+
+See [`docs/cloudflare-workers.md`](docs/cloudflare-workers.md) for authentication, custom-domain notes, and production smoke checks.
 
 ## Architecture
 
