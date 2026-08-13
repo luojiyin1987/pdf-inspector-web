@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { useId, useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
 import { MAX_PDF_SIZE_LABEL } from '../lib/file-validation'
 
 interface PdfDropzoneProps {
@@ -10,6 +10,7 @@ interface PdfDropzoneProps {
 
 export function PdfDropzone({ disabled = false, fileName, onFile, onCancel }: PdfDropzoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const inputId = useId()
   const [isDragging, setIsDragging] = useState(false)
 
   const pickFirstFile = (files: FileList | null) => {
@@ -62,8 +63,12 @@ export function PdfDropzone({ disabled = false, fileName, onFile, onCancel }: Pd
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
     >
+      <label className="visually-hidden" htmlFor={inputId}>
+        Choose a PDF to inspect
+      </label>
       <input
         ref={inputRef}
+        id={inputId}
         className="visually-hidden"
         type="file"
         accept="application/pdf,.pdf"

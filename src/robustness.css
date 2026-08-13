@@ -10,6 +10,11 @@
   transform: none;
 }
 
+.dropzone span,
+.dropzone small {
+  color: #56617a;
+}
+
 .dropzone__cancel {
   margin-top: 10px;
   cursor: pointer;
