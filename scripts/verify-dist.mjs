@@ -1,8 +1,9 @@
 import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { SITE_ORIGIN } from '../config/site.mjs'
 
 const dist = 'dist'
-const origin = 'https://pdf.itea.fit'
+const origin = SITE_ORIGIN
 const seoSlugs = [
   'pdf-to-markdown',
   'pdf-text-extractor',
@@ -59,5 +60,5 @@ for (const slug of seoSlugs) {
 }
 
 console.log(
-  `Verified production dist: ${requiredFiles.length} required files, security headers, sitemap, robots, and ${seoSlugs.length} canonical SEO pages.`,
+  `Verified production dist: ${requiredFiles.length} required files, security headers, sitemap, robots, and ${seoSlugs.length} canonical SEO pages for ${origin}.`,
 )
