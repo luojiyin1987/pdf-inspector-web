@@ -1,0 +1,16 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Keep the Cloudflare-provided host and preview deployments out of search results.
+# The canonical production host is https://pdf.itea.fit.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex

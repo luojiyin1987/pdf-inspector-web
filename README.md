@@ -46,7 +46,24 @@ Production build:
 npm run build
 ```
 
-The build runs TypeScript checks, Vite, and the SEO generator. Vite output is written to `dist/`, then the static SEO pages, sitemap, and robots file are added to that directory. The result can be hosted as static assets, including on Cloudflare.
+The build runs TypeScript checks, Vite, the SEO generator, and a final production-output verifier. Vite output is written to `dist/`, then the static SEO pages, sitemap, and robots file are added and validated.
+
+To rerun only the output checks:
+
+```bash
+npm run verify:dist
+```
+
+## Cloudflare Pages
+
+The repository is prepared for a static Cloudflare Pages deployment at `https://pdf.itea.fit`.
+
+- build command: `npm run build`
+- output directory: `dist`
+- production branch: `main`
+- `public/_headers` supplies security headers, immutable caching for hashed assets, and `noindex` for Cloudflare-provided preview/`pages.dev` hosts
+
+See [`docs/cloudflare-pages.md`](docs/cloudflare-pages.md) for the custom-domain setup and production smoke checks.
 
 ## Architecture
 
